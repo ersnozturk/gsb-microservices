@@ -1,29 +1,16 @@
 services:
-
   product_service:
     build: ./product_service
 #    ports:
 #      - "6001-6005:6000"
     volumes:
       - ./product_service/src:/app
-    deploy:
-      replicas: 5
 
-
-  order_service_1:
+  order_service:
     build: ./order_service
     volumes:
       - ./order_service/src:/app
 
-  order_service_2:
-    build: ./order_service
-    volumes:
-      - ./order_service/src:/app
-
-  order_service_3:
-    build: ./order_service
-    volumes:
-      - ./order_service/src:/app
   nginx:
     build: ./nginx
     ports:
@@ -31,9 +18,7 @@ services:
     restart: on-failure
     depends_on:
       - product_service
-      - order_service_1
-      - order_service_2
-      - order_service_3
+      - order_service
 
   prometheus:
     image: prom/prometheus:latest
