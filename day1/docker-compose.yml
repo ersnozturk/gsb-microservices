@@ -1,0 +1,10 @@
+services:
+
+  js_container:
+    build: ./js_container
+    ports:
+      - "6001-6005:6000"
+    volumes:
+      - ./js_container/src:/app
+    deploy:
+      replicas: 5
