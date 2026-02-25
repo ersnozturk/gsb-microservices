@@ -1,6 +1,6 @@
 {
   "annotations": { "list": [] },
-  "title": "Microservices Dashboard",
+  "title": "GSB Dashboard",
   "uid": "microservices-main",
   "version": 2,
   "timezone": "browser",
@@ -22,7 +22,7 @@
     },
     {
       "id": 2,
-      "title": "Backend1 - Toplam İstek",
+      "title": "Product Service - Toplam İstek",
       "type": "stat",
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
       "targets": [{
@@ -35,7 +35,7 @@
     },
     {
       "id": 3,
-      "title": "Backend2 - Toplam İstek",
+      "title": "Order Service - Toplam İstek",
       "type": "stat",
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
       "targets": [{
@@ -61,7 +61,7 @@
     },
     {
       "id": 5,
-      "title": "Backend1 - İstek Sayısı (instance bazlı)",
+      "title": "Product Service - İstek Sayısı (instance bazlı)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
       "targets": [{
@@ -75,7 +75,7 @@
     },
     {
       "id": 6,
-      "title": "Backend2 - İstek Sayısı (instance bazlı)",
+      "title": "Order Service - İstek Sayısı (instance bazlı)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
       "targets": [{

@@ -26,7 +26,7 @@ scrape_configs:
   # ----------------------------------------
   - job_name: 'nodejs-backend1'
     dns_sd_configs:
-      - names: ['js_container']
+      - names: ['product_service']
         type: 'A'
         port: 6000
 
@@ -36,6 +36,6 @@ scrape_configs:
   - job_name: 'nodejs-backend2'
     static_configs:
       - targets:
-          - 'js_container2_1:7000'
-          - 'js_container2_2:7000'
-          - 'js_container2_3:7000'
+          - 'order_service_1:7000'
+          - 'order_service_2:7000'
+          - 'order_service_3:7000'

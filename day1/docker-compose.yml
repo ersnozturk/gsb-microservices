@@ -1,39 +1,39 @@
 services:
 
-  js_container:
-    build: ./js_container
+  product_service:
+    build: ./product_service
 #    ports:
 #      - "6001-6005:6000"
     volumes:
-      - ./js_container/src:/app
+      - ./product_service/src:/app
     deploy:
       replicas: 5
 
 
-  js_container2_1:
-    build: ./js_container2
+  order_service_1:
+    build: ./order_service
     volumes:
-      - ./js_container2/src:/app
+      - ./order_service/src:/app
 
-  js_container2_2:
-    build: ./js_container2
+  order_service_2:
+    build: ./order_service
     volumes:
-      - ./js_container2/src:/app
+      - ./order_service/src:/app
 
-  js_container2_3:
-    build: ./js_container2
+  order_service_3:
+    build: ./order_service
     volumes:
-      - ./js_container2/src:/app
+      - ./order_service/src:/app
   nginx:
     build: ./nginx
     ports:
       - "8081:80"
     restart: on-failure
     depends_on:
-      - js_container
-      - js_container2_1
-      - js_container2_2
-      - js_container2_3
+      - product_service
+      - order_service_1
+      - order_service_2
+      - order_service_3
 
   prometheus:
     image: prom/prometheus:latest
