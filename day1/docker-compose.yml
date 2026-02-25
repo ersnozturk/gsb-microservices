@@ -9,9 +9,58 @@ services:
     deploy:
       replicas: 5
 
+
+  js_container2_1:
+    build: ./js_container2
+    volumes:
+      - ./js_container2/src:/app
+
+  js_container2_2:
+    build: ./js_container2
+    volumes:
+      - ./js_container2/src:/app
+
+  js_container2_3:
+    build: ./js_container2
+    volumes:
+      - ./js_container2/src:/app
   nginx:
     build: ./nginx
     ports:
       - "8081:80"
+    restart: on-failure
     depends_on:
       - js_container
+      - js_container2_1
+      - js_container2_2
+      - js_container2_3
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - nginx
+      - nginx-exporter
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    command: ["-nginx.scrape-uri=http://nginx:80/stub_status"]
+    depends_on:
+      - nginx
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus

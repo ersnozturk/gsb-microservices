@@ -1,0 +1,41 @@
+# ========================================
+# Prometheus Konfigürasyonu
+# ========================================
+global:
+  scrape_interval: 5s     # Her 5 saniyede bir metrik topla
+  evaluation_interval: 5s  # Kuralları her 5 saniyede değerlendir
+
+scrape_configs:
+  # ----------------------------------------
+  # Prometheus kendisi
+  # ----------------------------------------
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ----------------------------------------
+  # NGINX Metrikleri (exporter üzerinden)
+  # ----------------------------------------
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+
+  # ----------------------------------------
+  # Node.js Container 1 (5 replica)
+  # Docker DNS ile tüm instance'lara ulaşır
+  # ----------------------------------------
+  - job_name: 'nodejs-backend1'
+    dns_sd_configs:
+      - names: ['js_container']
+        type: 'A'
+        port: 6000
+
+  # ----------------------------------------
+  # Node.js Container 2 (3 ayrı instance)
+  # ----------------------------------------
+  - job_name: 'nodejs-backend2'
+    static_configs:
+      - targets:
+          - 'js_container2_1:7000'
+          - 'js_container2_2:7000'
+          - 'js_container2_3:7000'
