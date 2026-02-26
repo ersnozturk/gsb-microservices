@@ -1,14 +1,12 @@
-
 FROM node:24.13.1-alpine
 
 WORKDIR /app
 
-VOLUME ["/app"]
+# Önce package.json kopyala ve bağımlılıkları kur
+COPY src/package.json ./
+RUN npm install
 
-#RUN npm install
+EXPOSE 6000
 
-EXPOSE 6001
-
-CMD ["node", "index.js"]
-
-# CMD ["/bin/sh"]
+# Volume mount node_modules'ü ezebilir, bu yüzden her başlangıçta kontrol et
+CMD ["sh", "-c", "npm install && node index.js"]

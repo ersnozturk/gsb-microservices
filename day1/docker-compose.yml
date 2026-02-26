@@ -1,15 +1,88 @@
 services:
+
+  # ========================================
+  # INFRASTRUCTURE - Veritabanları & Message Broker
+  # ========================================
+
+  # MongoDB - Product Service için (esnek şema, ürün katalog verileri)
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: secret
+      MONGO_INITDB_DATABASE: productdb
+    volumes:
+      - mongodb_data:/data/db
+
+  # PostgreSQL - Order Service için (ACID, ilişkisel sipariş verileri)
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: orderuser
+      POSTGRES_PASSWORD: orderpass
+      POSTGRES_DB: orderdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # RabbitMQ - Asenkron haberleşme (Message Broker)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"     # AMQP protokolü
+      - "15672:15672"   # Management UI (admin/admin)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ========================================
+  # MICROSERVICES
+  # ========================================
+
   product_service:
     build: ./product_service
-#    ports:
-#      - "6001-6005:6000"
     volumes:
       - ./product_service/src:/app
+      - product_node_modules:/app/node_modules
+    environment:
+      MONGO_URI: mongodb://root:secret@mongodb:27017/productdb?authSource=admin
+      RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
+    restart: on-failure
+    depends_on:
+      mongodb:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
 
   order_service:
     build: ./order_service
     volumes:
       - ./order_service/src:/app
+      - order_node_modules:/app/node_modules
+    environment:
+      POSTGRES_URI: postgresql://orderuser:orderpass@postgres:5432/orderdb
+      RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
+      PRODUCT_SERVICE_URL: http://product_service:6000
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      product_service:
+        condition: service_started
+
+  # ========================================
+  # API GATEWAY & MONITORING
+  # ========================================
 
   nginx:
     build: ./nginx
@@ -49,3 +122,9 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - prometheus
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  product_node_modules:
+  order_node_modules:
