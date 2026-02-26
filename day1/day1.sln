@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mail_service", "mail_service", "{70106F5D-F59B-6A66-6392-8681141F1299}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{25067DF6-A564-0691-0443-C0BD0379F71D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MailService", "mail_service\src\MailService.csproj", "{5B18DB0D-FF81-DC25-5E55-2A46E4428C63}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B18DB0D-FF81-DC25-5E55-2A46E4428C63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B18DB0D-FF81-DC25-5E55-2A46E4428C63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B18DB0D-FF81-DC25-5E55-2A46E4428C63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B18DB0D-FF81-DC25-5E55-2A46E4428C63}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{25067DF6-A564-0691-0443-C0BD0379F71D} = {70106F5D-F59B-6A66-6392-8681141F1299}
+		{5B18DB0D-FF81-DC25-5E55-2A46E4428C63} = {25067DF6-A564-0691-0443-C0BD0379F71D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {89BF5730-5778-41D4-9D92-C2A20703C4F7}
+	EndGlobalSection
+EndGlobal

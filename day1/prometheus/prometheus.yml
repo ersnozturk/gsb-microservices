@@ -38,3 +38,12 @@ scrape_configs:
       - names: ['order_service']
         type: 'A'
         port: 7000
+
+  # ----------------------------------------
+  # Mail Service (dinamik instance keşfi)
+  # ----------------------------------------
+  - job_name: 'mail_service'
+    dns_sd_configs:
+      - names: ['mail_service']
+        type: 'A'
+        port: 8080

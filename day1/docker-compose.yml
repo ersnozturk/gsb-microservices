@@ -80,6 +80,16 @@ services:
       product_service:
         condition: service_started
 
+  mail_service:
+    build: ./mail_service
+    environment:
+      RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
+      ASPNETCORE_URLS: http://+:8080
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   # ========================================
   # API GATEWAY & MONITORING
   # ========================================
@@ -92,6 +102,7 @@ services:
     depends_on:
       - product_service
       - order_service
+      - mail_service
 
   prometheus:
     image: prom/prometheus:latest
