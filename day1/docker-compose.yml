@@ -55,8 +55,6 @@ services:
     environment:
       MONGO_URI: mongodb://root:secret@mongodb:27017/productdb?authSource=admin
       RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
-    deploy:
-      replicas: 3
     restart: on-failure
     depends_on:
       mongodb:
@@ -73,8 +71,6 @@ services:
       POSTGRES_URI: postgresql://orderuser:orderpass@postgres:5432/orderdb
       RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
       PRODUCT_SERVICE_URL: http://product_service:6000
-    deploy:
-      replicas: 2
     restart: on-failure
     depends_on:
       postgres:

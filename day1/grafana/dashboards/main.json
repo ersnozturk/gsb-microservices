@@ -2,7 +2,7 @@
   "annotations": { "list": [] },
   "title": "GSB Dashboard",
   "uid": "microservices-main",
-  "version": 2,
+  "version": 3,
   "timezone": "browser",
   "schemaVersion": 38,
   "refresh": "5s",
@@ -11,7 +11,7 @@
       "id": 1,
       "title": "NGINX - Aktif Bağlantılar",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
       "targets": [{
         "expr": "nginx_connections_active",
         "refId": "A"
@@ -21,10 +21,102 @@
       }
     },
     {
-      "id": 2,
-      "title": "Product Service - Toplam İstek",
+      "id": 10,
+      "title": "Product - Aktif Instance",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{
+        "expr": "count(up{job=\"nodejs-backend1\"} == 1)",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "green", "value": 2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Order - Aktif Instance",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{
+        "expr": "count(up{job=\"order_service\"} == 1)",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "green", "value": 2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Mail - Aktif Instance",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "targets": [{
+        "expr": "count(up{job=\"mail_service\"} == 1)",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "green", "value": 2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Toplam Aktif Instance",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "targets": [{
+        "expr": "count(up{job=~\"nodejs-backend1|order_service|mail_service\"} == 1)",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "green", "value": 5 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Product - Toplam İstek",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 4 },
       "targets": [{
         "expr": "sum(http_requests_total{job=\"nodejs-backend1\"})",
         "refId": "A"
@@ -35,9 +127,9 @@
     },
     {
       "id": 3,
-      "title": "Order Service - Toplam İstek",
+      "title": "Order - Toplam İstek",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 4 },
       "targets": [{
         "expr": "sum(http_requests_total{job=\"order_service\"})",
         "refId": "A"
@@ -47,12 +139,64 @@
       }
     },
     {
-      "id": 4,
-      "title": "Aktif Instance Sayısı",
+      "id": 13,
+      "title": "Mail - Toplam İstek",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 4 },
       "targets": [{
-        "expr": "count(up{job=~\"nodejs-backend1|order_service\"} == 1)",
+        "expr": "sum(http_requests_total{job=\"mail_service\"})",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" } }
+      }
+    },
+    {
+      "id": 18,
+      "title": "Product - Alınan Event",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 4 },
+      "targets": [{
+        "expr": "sum(events_received_total{job=\"nodejs-backend1\"})",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" } }
+      }
+    },
+    {
+      "id": 15,
+      "title": "Mail - Alınan Event",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 4 },
+      "targets": [{
+        "expr": "sum(events_received_total{job=\"mail_service\"})",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" } }
+      }
+    },
+    {
+      "id": 14,
+      "title": "Mail - Gönderilen Mail",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 4 },
+      "targets": [{
+        "expr": "sum(mails_sent_total)",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" } }
+      }
+    },
+    {
+      "id": 19,
+      "title": "Product - Stok Güncelleme",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 4 },
+      "targets": [{
+        "expr": "sum(stock_updated_total{job=\"nodejs-backend1\"})",
         "refId": "A"
       }],
       "fieldConfig": {
@@ -63,7 +207,7 @@
       "id": 5,
       "title": "Product Service - İstek Sayısı (instance bazlı)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
       "targets": [{
         "expr": "http_requests_total{job=\"nodejs-backend1\"}",
         "legendFormat": "{{instance}}",
@@ -77,7 +221,7 @@
       "id": 6,
       "title": "Order Service - İstek Sayısı (instance bazlı)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
       "targets": [{
         "expr": "http_requests_total{job=\"order_service\"}",
         "legendFormat": "{{instance}}",
@@ -88,10 +232,50 @@
       }
     },
     {
+      "id": 16,
+      "title": "Mail Service - İstek Sayısı (instance bazlı)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "targets": [{
+        "expr": "http_requests_total{job=\"mail_service\"}",
+        "legendFormat": "{{instance}}",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      }
+    },
+    {
+      "id": 17,
+      "title": "Instance Durumları (up/down)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "up{job=\"nodejs-backend1\"}",
+          "legendFormat": "product - {{instance}}",
+          "refId": "A"
+        },
+        {
+          "expr": "up{job=\"order_service\"}",
+          "legendFormat": "order - {{instance}}",
+          "refId": "B"
+        },
+        {
+          "expr": "up{job=\"mail_service\"}",
+          "legendFormat": "mail - {{instance}}",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "min": 0, "max": 1 }
+      }
+    },
+    {
       "id": 7,
       "title": "Node.js - Memory (Heap)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
       "targets": [{
         "expr": "nodejs_nodejs_heap_size_used_bytes",
         "legendFormat": "{{instance}}",
@@ -105,7 +289,7 @@
       "id": 8,
       "title": "Node.js - CPU (%)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
       "targets": [{
         "expr": "rate(nodejs_process_cpu_seconds_total[1m]) * 100",
         "legendFormat": "{{instance}}",

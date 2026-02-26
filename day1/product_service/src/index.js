@@ -20,6 +20,18 @@ const httpRequestsTotal = new client.Counter({
     labelNames: ['method', 'path', 'status']
 });
 
+const eventsReceivedTotal = new client.Counter({
+    name: 'events_received_total',
+    help: 'Alinan toplam event sayisi',
+    labelNames: ['event']
+});
+
+const stockUpdatedTotal = new client.Counter({
+    name: 'stock_updated_total',
+    help: 'Stok guncelleme sayisi',
+    labelNames: ['status']
+});
+
 // ========================================
 // MongoDB - Ürün Modeli
 // ========================================
@@ -52,6 +64,7 @@ async function startRabbitMQConsumer() {
             if (msg) {
                 const event = JSON.parse(msg.content.toString());
                 console.log(`[${INSTANCE_ID}] Event alındı: order.created ->`, event);
+                eventsReceivedTotal.inc({ event: 'order.created' });
 
                 try {
                     // Stok düşür
@@ -59,10 +72,12 @@ async function startRabbitMQConsumer() {
                     if (product) {
                         product.stock -= event.quantity;
                         await product.save();
+                        stockUpdatedTotal.inc({ status: 'success' });
                         console.log(`[${INSTANCE_ID}] Stok güncellendi: ${product.name} -> yeni stok: ${product.stock}`);
                     }
                     channel.ack(msg);
                 } catch (err) {
+                    stockUpdatedTotal.inc({ status: 'error' });
                     console.error(`[${INSTANCE_ID}] Stok güncelleme hatası:`, err.message);
                     channel.nack(msg, false, true); // Tekrar kuyruğa koy
                 }

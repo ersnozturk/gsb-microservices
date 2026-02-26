@@ -76,7 +76,10 @@ public class RabbitMQConsumerService : BackgroundService
             try
             {
                 var body = Encoding.UTF8.GetString(ea.Body.ToArray());
-                var eventData = JsonSerializer.Deserialize<OrderCreatedEvent>(body);
+                var eventData = JsonSerializer.Deserialize<OrderCreatedEvent>(body, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
 
                 EventsReceivedTotal.WithLabels("order.created").Inc();
 
