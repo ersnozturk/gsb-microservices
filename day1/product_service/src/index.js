@@ -3,6 +3,7 @@ const os = require('os');
 const client = require('prom-client');
 const mongoose = require('mongoose');
 const amqp = require('amqplib');
+const { trace, SpanStatusCode } = require('@opentelemetry/api');
 
 const PORT = 6000;
 const INSTANCE_ID = os.hostname();
@@ -69,17 +70,36 @@ async function startRabbitMQConsumer() {
                 try {
                     // Stok düşür
                     const product = await Product.findById(event.productId);
-                    if (product) {
-                        product.stock -= event.quantity;
-                        await product.save();
-                        stockUpdatedTotal.inc({ status: 'success' });
-                        console.log(`[${INSTANCE_ID}] Stok güncellendi: ${product.name} -> yeni stok: ${product.stock}`);
+                    if (!product) {
+                        throw new Error(`Ürün bulunamadı: ${event.productId}`);
                     }
+
+                    // Stok yeterliliğini kontrol et
+                    if (product.stock < event.quantity) {
+                        throw new Error(
+                            `Yetersiz stok! Ürün: ${product.name}, ` +
+                            `Mevcut: ${product.stock}, İstenen: ${event.quantity}`
+                        );
+                    }
+
+                    product.stock -= event.quantity;
+                    await product.save();
+                    stockUpdatedTotal.inc({ status: 'success' });
+                    console.log(`[${INSTANCE_ID}] Stok güncellendi: ${product.name} -> yeni stok: ${product.stock}`);
                     channel.ack(msg);
                 } catch (err) {
                     stockUpdatedTotal.inc({ status: 'error' });
-                    console.error(`[${INSTANCE_ID}] Stok güncelleme hatası:`, err.message);
-                    channel.nack(msg, false, true); // Tekrar kuyruğa koy
+                    console.error(`[${INSTANCE_ID}] ❌ Stok güncelleme hatası:`, err.message);
+
+                    // Hatayı aktif span'e kaydet → Jaeger'da kırmızı görünür
+                    const activeSpan = trace.getActiveSpan();
+                    if (activeSpan) {
+                        activeSpan.recordException(err);
+                        activeSpan.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+                    }
+
+                    // Hatalı mesajı tekrar kuyruğa KOYMA (sonsuz döngü olur)
+                    channel.ack(msg);
                 }
             }
         });

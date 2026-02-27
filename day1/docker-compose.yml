@@ -55,12 +55,16 @@ services:
     environment:
       MONGO_URI: mongodb://root:secret@mongodb:27017/productdb?authSource=admin
       RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_SERVICE_NAME: product-service
     restart: on-failure
     depends_on:
       mongodb:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
   order_service:
     build: ./order_service
@@ -71,6 +75,8 @@ services:
       POSTGRES_URI: postgresql://orderuser:orderpass@postgres:5432/orderdb
       RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
       PRODUCT_SERVICE_URL: http://product_service:6000
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_SERVICE_NAME: order-service
     restart: on-failure
     depends_on:
       postgres:
@@ -79,16 +85,22 @@ services:
         condition: service_healthy
       product_service:
         condition: service_started
+      jaeger:
+        condition: service_started
 
   mail_service:
     build: ./mail_service
     environment:
       RABBITMQ_URI: amqp://guest:guest@rabbitmq:5672
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: http://+:5050
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_SERVICE_NAME: mail-service
     restart: on-failure
     depends_on:
       rabbitmq:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
   # ========================================
   # API GATEWAY & MONITORING
@@ -103,6 +115,15 @@ services:
       - product_service
       - order_service
       - mail_service
+
+  # Jaeger - Distributed Tracing (OpenTelemetry)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4318:4318"     # OTLP HTTP receiver
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
 
   prometheus:
     image: prom/prometheus:latest

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Prometheus;
@@ -15,6 +16,9 @@ public class RabbitMQConsumerService : BackgroundService
     private readonly ILogger<RabbitMQConsumerService> _logger;
     private readonly string _rabbitMqUri;
     private readonly string _instanceId;
+
+    // OpenTelemetry için ActivitySource
+    private static readonly ActivitySource ActivitySource = new("mail-service");
 
     // Prometheus metrikleri
     private static readonly Counter MailsSentTotal = Metrics.CreateCounter(
@@ -75,6 +79,33 @@ public class RabbitMQConsumerService : BackgroundService
         {
             try
             {
+                // RabbitMQ header'larından traceparent'ı çıkar
+                ActivityContext parentContext = default;
+                if (ea.BasicProperties.Headers != null &&
+                    ea.BasicProperties.Headers.TryGetValue("traceparent", out var traceparentObj))
+                {
+                    var traceparent = traceparentObj is byte[] bytes
+                        ? Encoding.UTF8.GetString(bytes)
+                        : traceparentObj?.ToString();
+
+                    if (!string.IsNullOrEmpty(traceparent) &&
+                        ActivityContext.TryParse(traceparent, null, out var parsed))
+                    {
+                        parentContext = parsed;
+                    }
+                }
+
+                // Parent trace'e bağlı CONSUMER span oluştur
+                using var activity = ActivitySource.StartActivity(
+                    "consume order.created",
+                    ActivityKind.Consumer,
+                    parentContext);
+
+                activity?.SetTag("messaging.system", "rabbitmq");
+                activity?.SetTag("messaging.source", "order_events");
+                activity?.SetTag("messaging.operation", "receive");
+                activity?.SetTag("messaging.destination", "mail_notification");
+
                 var body = Encoding.UTF8.GetString(ea.Body.ToArray());
                 var eventData = JsonSerializer.Deserialize<OrderCreatedEvent>(body, new JsonSerializerOptions
                 {

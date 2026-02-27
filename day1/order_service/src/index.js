@@ -3,6 +3,7 @@ const os = require('os'); // İşletim sistemi bilgisi (hostname) almak için
 const client = require('prom-client'); // Prometheus metrikleri toplamak için
 const { Pool } = require('pg'); // PostgreSQL veritabanı bağlantı havuzu için
 const amqp = require('amqplib'); // RabbitMQ mesaj kuyruğu ile iletişim için
+const { trace, context, propagation, SpanKind } = require('@opentelemetry/api'); // OpenTelemetry trace context
 
 const PORT = 7000;
 const INSTANCE_ID = os.hostname();
@@ -43,15 +44,40 @@ async function connectRabbitMQ() {
     }
 }
 
-// Event yayınla
+// Event yayınla (trace context ile)
 function publishEvent(eventName, data) {
     if (!rabbitChannel) {
         console.error(`[${INSTANCE_ID}] RabbitMQ channel yok, event gönderilemedi`);
         return;
     }
-    const message = { event: eventName, data, timestamp: new Date().toISOString() };
-    rabbitChannel.publish('order_events', '', Buffer.from(JSON.stringify(data)));
-    console.log(`[${INSTANCE_ID}] Event yayınlandı: ${eventName} ->`, data);
+
+    // Aktif trace context'ten span oluştur
+    const tracer = trace.getTracer('order-service');
+    const span = tracer.startSpan(`publish ${eventName}`, {
+        kind: SpanKind.PRODUCER,
+        attributes: {
+            'messaging.system': 'rabbitmq',
+            'messaging.destination': 'order_events',
+            'messaging.operation': 'publish',
+        },
+    });
+
+    // Trace context'i mesaj header'larına enjekte et
+    const headers = {};
+    propagation.inject(trace.setSpan(context.active(), span), headers);
+
+    try {
+        rabbitChannel.publish('order_events', '', Buffer.from(JSON.stringify(data)), {
+            headers: headers,  // traceparent ve tracestate header'ları
+            persistent: true,
+        });
+        console.log(`[${INSTANCE_ID}] Event yayınlandı: ${eventName} ->`, data);
+    } catch (err) {
+        span.recordException(err);
+        console.error(`[${INSTANCE_ID}] Event yayınlama hatası:`, err.message);
+    } finally {
+        span.end();
+    }
 }
 
 // ========================================

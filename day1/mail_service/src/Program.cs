@@ -1,7 +1,38 @@
 using MailService.Services;
 using Prometheus;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ========================================
+// OpenTelemetry Distributed Tracing
+// ========================================
+var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? "mail-service";
+var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? "http://localhost:4318";
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(serviceName))
+    .WithTracing(tracing => tracing
+        .AddSource("mail-service")             // RabbitMQ consumer span'leri için
+        .AddAspNetCoreInstrumentation(opts =>
+        {
+            // /metrics ve /health endpoint'lerini trace'den hariç tut
+            opts.Filter = (httpContext) =>
+            {
+                var path = httpContext.Request.Path.Value ?? "";
+                return path != "/metrics" && path != "/health";
+            };
+        })
+        .AddHttpClientInstrumentation()    // Giden HTTP isteklerini izle
+        .AddOtlpExporter(opts =>
+        {
+            opts.Endpoint = new Uri($"{otlpEndpoint}/v1/traces");
+            opts.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+        })
+    );
+
+Console.WriteLine($"[OpenTelemetry] {serviceName} tracing başlatıldı -> {otlpEndpoint}");
 
 // RabbitMQ Consumer'ı background service olarak ekle
 builder.Services.AddHostedService<RabbitMQConsumerService>();

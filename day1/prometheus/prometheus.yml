@@ -46,4 +46,4 @@ scrape_configs:
     dns_sd_configs:
       - names: ['mail_service']
         type: 'A'
-        port: 8080
+        port: 5050

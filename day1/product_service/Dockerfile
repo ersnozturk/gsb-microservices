@@ -9,4 +9,4 @@ RUN npm install
 EXPOSE 6000
 
 # Volume mount node_modules'ü ezebilir, bu yüzden her başlangıçta kontrol et
-CMD ["sh", "-c", "npm install && node index.js"]
+CMD ["sh", "-c", "npm install && node -r ./tracing.js index.js"]
